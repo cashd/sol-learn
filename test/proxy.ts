@@ -1,5 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { Logic, Proxy } from "../typechain";
 
@@ -20,10 +21,14 @@ describe("Proxy contract", async () => {
     await proxy.deployed();
 
     await proxy.setImpl(logic.address);
+
+    const abi = ["function initialize() public"];
+    const proxied = new Contract(proxy.address, abi, owner);
+    await proxied.initialize();
   });
 
   it("points to an implementation contract", async () => {
-    expect(await proxy.impl()).to.eq(logic.address);
+    expect(await proxy.getImpl()).to.eq(logic.address);
   });
 
   it("number in logic contract is correct", async () => {
