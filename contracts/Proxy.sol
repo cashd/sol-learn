@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
+import "../libraries/StorageSlot.sol";
+
 contract Proxy {
-    // Address of our logic contract
-    address public impl;
+    bytes32 private constant _IMPL_SLOT =
+        bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
 
     // Setter for updating impl state variable
     function setImpl(address _impl) public {
-        impl = _impl;
+        StorageSlot.setAddressAt(_IMPL_SLOT, _impl);
     }
 
     // Getter for returning imple state variable
     function getImpl() public view returns (address) {
-        return impl;
+        return StorageSlot.getAddressAt(_IMPL_SLOT);
     }
 
-    fallback() external {
+    function _delegate(address impl) internal virtual {
         assembly {
             // Load free memory pointer
             let ptr := mload(0x40)
@@ -25,7 +27,7 @@ contract Proxy {
 
             let result := delegatecall(
                 gas(), // Gas
-                sload(impl.slot), // Load state variable, .slot returns the slot address of impl
+                impl, // Load state variable, .slot returns the slot address of impl
                 ptr, // Write result starting at free memory pointer
                 calldatasize(), // Length in bytes of calldata
                 0, // A memory address to where to store the result from delegatecall
@@ -46,6 +48,10 @@ contract Proxy {
                 return(ptr, size)
             }
         }
+    }
+
+    fallback() external {
+        _delegate(StorageSlot.getAddressAt(_IMPL_SLOT));
     }
 }
 
