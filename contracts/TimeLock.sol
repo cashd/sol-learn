@@ -21,13 +21,13 @@ contract TimeLock {
         address indexed target,
         uint256 value,
         string func,
-        bytes data,
+        bytes32 data,
         uint256 timestamp
     );
 
     event Execute(
         bytes32 indexed txId,
-        bytes32 indexed target,
+        address indexed target,
         uint256 value,
         string func,
         bytes32 data,
@@ -89,6 +89,56 @@ contract TimeLock {
 
         queued[txId] = true;
 
-        emit Queue(txId, _target, _value, _func, _data, _timestamp);
+        emit Queue(txId, _target, _value, _func, bytes32(_data), _timestamp);
+    }
+
+    function execute(
+        address _target,
+        uint256 _value,
+        string calldata _func,
+        bytes calldata _data,
+        uint256 _timestamp
+    ) external payable onlyOwner returns (bytes memory) {
+        bytes32 txId = getTxId(_target, _value, _func, _data, _timestamp);
+        if (!queued[txId]) {
+            revert NotQueuedError(txId);
+        }
+
+        if (block.timestamp < _timestamp) {
+            revert TimestampNotPassedError(block.timestamp, _timestamp);
+        }
+        if (block.timestamp > _timestamp + GRACE_PERIOD) {
+            revert TimestampExpiredError(
+                block.timestamp,
+                _timestamp + GRACE_PERIOD
+            );
+        }
+
+        queued[txId] = false;
+        bytes memory data;
+        if (bytes(_func).length > 0) {
+            data = abi.encodePacked(bytes4(keccak256(bytes(_func))), _data);
+        } else {
+            data = _data;
+        }
+
+        (bool ok, bytes memory res) = _target.call{value: _value}(data);
+        if (!ok) {
+            revert TxFailedError();
+        }
+
+        emit Execute(txId, _target, _value, _func, bytes32(_data), _timestamp);
+
+        return res;
+    }
+
+    function cancel(bytes32 _txId) external onlyOwner {
+        if (!queued[_txId]) {
+            revert NotQueuedError(_txId);
+        }
+
+        queued[_txId] = false;
+
+        emit Cancel(_txId);
     }
 }
