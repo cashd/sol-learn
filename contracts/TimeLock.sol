@@ -85,9 +85,10 @@ contract TimeLock {
             _timestamp > block.timestamp + MAX_DELAY
         ) {
             revert TimestampNotInRangeError(block.timestamp, _timestamp);
-            queued[txId] = true;
-
-            emit Queue(txId, _target, _value, _func, _data, _timestamp);
         }
+
+        queued[txId] = true;
+
+        emit Queue(txId, _target, _value, _func, _data, _timestamp);
     }
 }
