@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import "../libraries/StorageSlot.sol";
+import '../libraries/StorageSlot.sol';
 
 contract Proxy {
     bytes32 private constant _IMPL_SLOT =
-        bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
+        bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1);
 
     // Setter for updating impl state variable
     function setImpl(address _impl) public {

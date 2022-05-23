@@ -6,7 +6,7 @@ contract Logic {
     uint256 number;
 
     function initialize() public {
-        require(!initialized, "already initialized");
+        require(!initialized, 'already initialized');
 
         number = 0x42;
         initialized = true;
