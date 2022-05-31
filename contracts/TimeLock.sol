@@ -38,7 +38,7 @@ contract TimeLock {
 
     /*
     | Constants | 
-  */
+    */
     uint256 public constant MIN_DELAY = 10; // seconds
     uint256 public constant MAX_DELAY = 1000; // seconds
     uint256 public constant GRACE_PERIOD = 1000; // seconds
