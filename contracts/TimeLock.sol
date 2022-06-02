@@ -122,7 +122,7 @@ contract TimeLock {
             data = _data;
         }
 
-        (bool ok, bytes memory res) = _target.call{value: _value}(data);
+        (bool ok, bytes memory res) = _target.call(data);
         if (!ok) {
             revert TxFailedError();
         }
