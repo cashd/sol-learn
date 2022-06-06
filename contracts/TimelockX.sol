@@ -64,5 +64,7 @@ contract TimeLockX {
                 i++;
             }
         }
+
+        delete calls[callHash];
     }
 }
