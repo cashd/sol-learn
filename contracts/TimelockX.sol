@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
+import "hardhat/console.sol";
+
 // Opinioned Timelock contract
 // Contract executes a transaction after a wait period
 contract TimeLockX {
@@ -25,9 +27,9 @@ contract TimeLockX {
         waitTime = _waitTime;
     }
 
-    function registerCall(bytes32 _callHash) external onlyOwner {
-        require(calls[_callHash] == 0, "Call already registered");
-        calls[_callHash] = block.timestamp;
+    function registerCall(bytes32 callHash) external onlyOwner {
+        require(calls[callHash] == 0, "Call already registered");
+        calls[callHash] = block.timestamp;
     }
 
     function encodeCall(address[] calldata targets, bytes[] calldata calldatas)
@@ -44,7 +46,7 @@ contract TimeLockX {
     {
         bytes32 callHash = encodeCall(targets, calldatas);
 
-        require(calls[callHash] == 0, "call already registered");
+        require(calls[callHash] != 0, "call not registered");
         require(calls[callHash] + waitTime < block.timestamp, "wait longer");
         require(targets.length == calldatas.length, "lengths must match");
 
